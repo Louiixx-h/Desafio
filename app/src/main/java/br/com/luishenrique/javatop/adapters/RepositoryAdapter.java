@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,49 +17,53 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import br.com.luishenrique.javatop.R;
-import br.com.luishenrique.javatop.data.mappers.Item;
+import br.com.luishenrique.javatop.data.mappers.ItemRepository;
 import br.com.luishenrique.javatop.data.models.Repository;
 
-public class RepositoryAdapter extends PagedListAdapter<Item, RepositoryAdapter.RepositoryHolder> {
+public class RepositoryAdapter extends PagedListAdapter<ItemRepository, RepositoryAdapter.RepositoryViewHolder> {
 
 
     private Context context;
+    private RecyclerViewClickListener listerner;
+    public static Repository repository;
 
-    protected RepositoryAdapter(Context context) {
+    public RepositoryAdapter(Context context, RecyclerViewClickListener listerner) {
         super(DIFF_CALLBACK);
         this.context = context;
+        this.listerner = listerner;
     }
 
     @NonNull
     @Override
-    public RepositoryHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RepositoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.list_item, parent, false);
-        return new RepositoryHolder(view);
+        View view = inflater.inflate(R.layout.item_repository, parent, false);
+        return new RepositoryViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RepositoryHolder holder, int position) {
-        Item item = getItem(position);
+    public void onBindViewHolder(@NonNull RepositoryViewHolder holder, int position) {
+        ItemRepository item = getItem(position);
         holder.toRepository(item);
     }
 
-    private static DiffUtil.ItemCallback<Item> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<Item>() {
+    private static DiffUtil.ItemCallback<ItemRepository> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<ItemRepository>() {
                 @Override
-                public boolean areItemsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
-                    return oldItem.owner.id == newItem.owner.id;
+                public boolean areItemsTheSame(@NonNull ItemRepository oldItem, @NonNull ItemRepository newItem) {
+                    return oldItem.id == newItem.id;
                 }
 
                 @SuppressLint("DiffUtilEquals")
                 @Override
-                public boolean areContentsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
+                public boolean areContentsTheSame(@NonNull ItemRepository oldItem, @NonNull ItemRepository newItem) {
                     return oldItem.equals(newItem);
                 }
             };
 
-    class RepositoryHolder extends RecyclerView.ViewHolder {
+    class RepositoryViewHolder extends RecyclerView.ViewHolder {
 
+        private CardView card_repository;
         private TextView item_title;
         private TextView item_desc;
         private TextView item_forks;
@@ -66,7 +71,7 @@ public class RepositoryAdapter extends PagedListAdapter<Item, RepositoryAdapter.
         private TextView item_username;
         private ImageView item_avatar;
 
-        public RepositoryHolder(View itemView) {
+        public RepositoryViewHolder(View itemView) {
             super(itemView);
             item_title = itemView.findViewById(R.id.item_title);
             item_desc = itemView.findViewById(R.id.item_desc);
@@ -74,9 +79,14 @@ public class RepositoryAdapter extends PagedListAdapter<Item, RepositoryAdapter.
             item_stars = itemView.findViewById(R.id.item_stars);
             item_avatar = itemView.findViewById(R.id.item_avatar);
             item_username = itemView.findViewById(R.id.item_username);
+            card_repository = itemView.findViewById(R.id.card_repository);
+
+            card_repository.setOnClickListener( v -> {
+                listerner.OnclickRecyclerItem(getAdapterPosition(), getItem(getAdapterPosition()));
+            });
         }
 
-        public void toRepository(Item item) {
+        public void toRepository(ItemRepository item) {
              Repository repo = new Repository(
                     item.nameRepo,
                     item.desc,
@@ -84,7 +94,7 @@ public class RepositoryAdapter extends PagedListAdapter<Item, RepositoryAdapter.
                     item.owner.username,
                     item.stars,
                     item.forks,
-                    item.owner.id
+                    item.id
             );
             bind(repo);
         }
@@ -92,12 +102,17 @@ public class RepositoryAdapter extends PagedListAdapter<Item, RepositoryAdapter.
         public void bind(Repository repo) {
             item_title.setText(repo.getNameRepository());
             item_desc.setText(repo.getDescription());
-            item_forks.setText(repo.getForks());
-            item_stars.setText(repo.getStars());
+            item_forks.setText(""+repo.getForks());
+            item_stars.setText(""+repo.getStars());
             item_username.setText(repo.getUsername());
             Glide.with(context)
                     .load(repo.getAvatarUrl())
                     .into(item_avatar);
+            repository = repo;
         }
+    }
+
+    public interface RecyclerViewClickListener {
+        void OnclickRecyclerItem(int position, ItemRepository item);
     }
 }

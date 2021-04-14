@@ -2,7 +2,10 @@ package br.com.luishenrique.javatop.data.mappers;
 
 import com.squareup.moshi.Json;
 
-public class Item {
+public class ItemRepository {
+
+    @Json(name = "id")
+    public Long id;
 
     @Json(name = "name")
     public String nameRepo;
@@ -17,5 +20,5 @@ public class Item {
     public int stars;
 
     @Json(name = "owner")
-    public Owner owner;
+    public OwnerRepository owner;
 }
